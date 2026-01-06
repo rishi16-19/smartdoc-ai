@@ -1,3 +1,10 @@
+import {
+  CognitoUser,
+  AuthenticationDetails,
+  CognitoUserSession
+} from "amazon-cognito-identity-js";
+import { userPool } from "../auth/cognito";
+
 // Auth Types
 export interface User {
   id: string;
@@ -12,39 +19,89 @@ export interface AuthResponse {
 
 export interface AuthService {
   login(email: string, password: string): Promise<AuthResponse>;
+  signUp(email: string, password: string): Promise<void>;
+  confirmSignUp(email: string, code: string): Promise<void>;
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   getToken(): Promise<string | null>;
 }
 
-// Mock Implementation
-const MOCK_USER: User = {
-  id: 'usr_123456',
-  email: 'demo@smartdoc.ai',
-  name: 'Demo User',
-};
+class CognitoAuthService implements AuthService {
+  private tokenKey = "smartdoc_auth_token";
+  private userKey = "smartdoc_user";
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  async signUp(email: string, password: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      userPool.signUp(email, password, [], [], (err) => {
+        if (err) {
+          console.error("Cognito signup error:", err);
+          reject(err);
+          return;
+        }
+        resolve();
+      });
+    });
+  }
 
-export class MockAuthService implements AuthService {
-  private tokenKey = 'smartdoc_auth_token';
-  private userKey = 'smartdoc_user';
+  async confirmSignUp(email: string, code: string): Promise<void> {
+    const user = new CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
 
-  async login(email: string, _password: string): Promise<AuthResponse> {
-    await delay(1000); // Simulate network request
-    
-    // In a real app, we would validate credentials here
-    const token = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
-    const user = { ...MOCK_USER, email };
+    return new Promise((resolve, reject) => {
+      user.confirmRegistration(code, true, (err) => {
+        if (err) {
+          console.error("Cognito confirmation error:", err);
+          reject(err);
+          return;
+        }
+        resolve();
+      });
+    });
+  }
 
-    localStorage.setItem(this.tokenKey, token);
-    localStorage.setItem(this.userKey, JSON.stringify(user));
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const user = new CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
 
-    return { user, token };
+    const authDetails = new AuthenticationDetails({
+      Username: email,
+      Password: password
+    });
+
+    return new Promise((resolve, reject) => {
+      user.authenticateUser(authDetails, {
+        onSuccess: (session: CognitoUserSession) => {
+          const token = session.getIdToken().getJwtToken();
+
+          const currentUser: User = {
+            id: session.getIdToken().payload.sub,
+            email,
+            name: email.split("@")[0]
+          };
+
+          localStorage.setItem(this.tokenKey, token);
+          localStorage.setItem(this.userKey, JSON.stringify(currentUser));
+
+          resolve({ user: currentUser, token });
+        },
+        onFailure: (err) => {
+          console.error("Cognito login error:", err);
+          reject(err);
+        }
+      });
+    });
   }
 
   async logout(): Promise<void> {
-    await delay(500);
+    const cognitoUser = userPool.getCurrentUser();
+    if (cognitoUser) {
+      cognitoUser.signOut();
+    }
+
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
   }
@@ -52,6 +109,7 @@ export class MockAuthService implements AuthService {
   async getCurrentUser(): Promise<User | null> {
     const userStr = localStorage.getItem(this.userKey);
     if (!userStr) return null;
+
     try {
       return JSON.parse(userStr);
     } catch {
@@ -64,5 +122,4 @@ export class MockAuthService implements AuthService {
   }
 }
 
-// Export a singleton instance
-export const authService = new MockAuthService();
+export const authService = new CognitoAuthService();

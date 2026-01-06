@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
@@ -91,9 +91,9 @@ export function LoginPage() {
 
                     <div className="mt-4 text-center text-sm text-slate-500">
                         Don't have an account?{' '}
-                        <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                        <Link to="/signup" className="font-medium text-primary-600 hover:text-primary-500">
                             Sign up
-                        </a>
+                        </Link>
                     </div>
                 </CardContent>
             </Card>

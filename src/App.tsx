@@ -8,6 +8,8 @@ import { ResultsPage } from './pages/ResultsPage';
 
 import { AuthProvider } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 function App() {
   return (
@@ -17,22 +19,29 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             <Route
               path="/upload"
               element={
-                <UploadPage />
+                <ProtectedRoute>
+                  <UploadPage />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/status/:fileId"
               element={
-                <StatusPage />
+                <ProtectedRoute>
+                  <StatusPage />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/result/:fileId"
               element={
-                <ResultsPage />
+                <ProtectedRoute>
+                  <ResultsPage />
+                </ProtectedRoute>
               }
             />
           </Routes>

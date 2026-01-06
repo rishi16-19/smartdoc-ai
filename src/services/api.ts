@@ -1,4 +1,6 @@
 
+import { authService } from "./auth";
+
 // Types
 export interface UploadResponse {
     fileId: string;
@@ -16,24 +18,28 @@ export interface AnalysisResult {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const token = await authService.getToken();
+
 
 export const api = {
     /**
      * Uploads a file to the backend.
-     * 1. Calls POST /upload to get a presigned URL.
+     * 1. Calls POST /upload-url to get a presigned URL.
      * 2. Uploads the file directly to S3 using the presigned URL.
      */
+
     uploadFile: async (file: File): Promise<UploadResponse> => {
         // Step 1: Get presigned URL
-        const initResponse = await fetch(`${API_BASE_URL}/upload`, {
-            method: 'POST',
+        const initResponse = await fetch(`${API_BASE_URL}/upload-url`, {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 fileName: file.name,
-                contentType: file.type,
-            }),
+                contentType: file.type
+            })
         });
 
         if (!initResponse.ok) {
@@ -47,7 +53,7 @@ export const api = {
         const uploadResponse = await fetch(uploadUrl, {
             method: 'PUT',
             headers: {
-                'Content-Type': file.type,
+                'Content-Type': file.type || "application/pdf"
             },
             body: file,
         });
@@ -60,7 +66,12 @@ export const api = {
     },
 
     getStatus: async (fileId: string): Promise<ProcessingStatus> => {
-        const response = await fetch(`${API_BASE_URL}/status/${fileId}`);
+        const response = await fetch(`${API_BASE_URL}/status/${fileId}`, {
+            headers: {
+                Authorization: token!
+            }
+        });
+
 
         if (!response.ok) {
             throw new Error(`Failed to fetch status: ${response.statusText}`);
