@@ -18,8 +18,6 @@ export interface AnalysisResult {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const token = await authService.getToken();
-
 
 export const api = {
     /**
@@ -29,6 +27,7 @@ export const api = {
      */
 
     uploadFile: async (file: File): Promise<UploadResponse> => {
+        const token = await authService.getToken();
         // Step 1: Get presigned URL
         const initResponse = await fetch(`${API_BASE_URL}/upload-url`, {
             method: "POST",
@@ -66,9 +65,10 @@ export const api = {
     },
 
     getStatus: async (fileId: string): Promise<ProcessingStatus> => {
+        const token = await authService.getToken();
         const response = await fetch(`${API_BASE_URL}/status/${fileId}`, {
             headers: {
-                Authorization: token!
+                Authorization: `Bearer ${token}`
             }
         });
 
@@ -81,7 +81,12 @@ export const api = {
     },
 
     getResult: async (fileId: string): Promise<AnalysisResult> => {
-        const response = await fetch(`${API_BASE_URL}/result/${fileId}`);
+        const token = await authService.getToken();
+        const response = await fetch(`${API_BASE_URL}/result/${fileId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
 
         if (!response.ok) {
             throw new Error(`Failed to fetch result: ${response.statusText}`);

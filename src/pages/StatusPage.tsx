@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { api, type ProcessingStatus } from '../services/api';
@@ -48,22 +48,23 @@ export function StatusPage() {
             case 'FAILED':
                 return <XCircle className="h-12 w-12 text-red-500" />;
             default:
-                return <AlertTriangle className="h-12 w-12 text-yellow-500" />;
+                // Fallback to loading state for unknown statuses to prevent jarring transitions
+                return <Loader2 className="h-12 w-12 animate-spin text-primary-600" />;
         }
     };
 
     const getStatusMessage = () => {
         switch (status) {
             case 'UPLOADED':
-                return 'File uploaded. Waiting for processing...';
+                return 'Initiating AI analysis...';
             case 'PROCESSING':
-                return 'AI is analyzing your document...';
+                return 'Extracting insights...';
             case 'COMPLETED':
                 return 'Processing complete! Redirecting...';
             case 'FAILED':
                 return 'Processing failed.';
             default:
-                return 'Unknown status';
+                return 'Processing...';
         }
     };
 
@@ -78,7 +79,7 @@ export function StatusPage() {
                         {getStatusIcon()}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 animate-in fade-in duration-500">
                         <h3 className="text-xl font-semibold text-slate-900">
                             {getStatusMessage()}
                         </h3>
