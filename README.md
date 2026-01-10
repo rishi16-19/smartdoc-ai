@@ -1,73 +1,164 @@
-# React + TypeScript + Vite
+📄 SmartDoc AI — Serverless Intelligent Document Processing Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SmartDoc AI is an end-to-end serverless document understanding system that allows users to upload PDFs and images, extract text using AWS Textract, enrich insights using AWS Comprehend and foundation models, and retrieve structured results through secure APIs.
 
-Currently, two official plugins are available:
+This project is designed with scalability, cost control, and production-grade architecture in mind.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🚀 Features
 
-## React Compiler
+🔐 Secure Authentication
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+AWS Cognito User Pool (Signup, Login, Email verification)
 
-## Expanding the ESLint configuration
+📤 File Upload
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+PDFs, JPEG, PNG supported
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Pre-signed S3 upload URLs
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+File size & MIME validation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+📄 Text Extraction
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+AWS Textract (asynchronous, scalable)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+🧠 Intelligent Enrichment
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+AWS Comprehend for:
+
+Key Phrases
+
+Named Entities
+
+Foundation-model ready (Bedrock-compatible design)
+
+🔄 Orchestration
+
+AWS Step Functions with retry, wait, poll-count & failure guards
+
+📦 Persistence
+
+DynamoDB for document status & AI results
+
+🌐 Frontend
+
+CloudFront + S3 static hosting
+
+💰 Cost Controls
+
+File size limits
+
+Poll limits in Step Functions
+
+Conditional AI execution
+
+Serverless-first design
+
+🧱 Architecture Overview
+Frontend (CloudFront + S3)
+        |
+        v
+API Gateway (Cognito Authorizer)
+        |
+        v
+Lambda (Upload URL Generator)
+        |
+        v
+S3 (Input Bucket)
+        |
+        v
+Step Functions
+   ├── MarkProcessing
+   ├── Textract (Start + Poll)
+   ├── Normalize Text
+   ├── Comprehend Extraction
+   ├── (Optional) LLM Summary
+   └── Store Results (DynamoDB)
+        |
+        v
+API Gateway (/result/{fileId})
+
+🧠 State Machine Design (Highlights)
+
+No infinite loops
+
+Poll count guard with max retries
+
+Graceful failure handling
+
+FAILED state persisted to DynamoDB
+
+Event-driven
+
+Triggered automatically on S3 upload
+
+Cost-aware
+
+Early exits for small / low-value text
+
+📊 DynamoDB Data Model
+Attribute	Type	Description
+fileId	PK	Unique document ID
+status	S	UPLOADED / PROCESSING / COMPLETED / FAILED
+summary	S	Extracted summary
+keyPhrases	L	List of key phrases
+entities	L	List of detected entities
+🔐 Security
+
+Cognito-based JWT authentication
+
+API Gateway authorizers
+
+Private S3 buckets
+
+Least-privilege IAM roles per Lambda
+
+CORS configured correctly across APIs
+
+💰 Cost Optimization Techniques Used
+
+Max file size restriction (5 MB)
+
+Step Function poll limits
+
+Conditional AI invocation
+
+Async Textract (not sync)
+
+Serverless components only (no EC2)
+
+🛠 Tech Stack
+
+Frontend: React, Vite, CloudFront, S3
+
+Backend: AWS Lambda, API Gateway
+
+AI & NLP: Textract, Comprehend, Bedrock-ready
+
+Orchestration: AWS Step Functions
+
+Auth: AWS Cognito
+
+Storage: S3, DynamoDB
+
+IaC (partial): AWS Console + policies
+
+📌 Future Enhancements
+
+Vector embeddings & semantic search
+
+RAG-based question answering
+
+Multi-document comparison
+
+Webhook-based processing status
+
+UI for extracted entities & highlights
+
+🏁 Status
+
+✅ Production-grade MVP completed
+📦 Fully serverless
+💸 Cost-safe
+🔒 Secure
+📈 Scalable
